@@ -1,18 +1,18 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
+import { usersData } from "../test-data/users";
 
-test('has title', async ({ page }) => {
-  await page.goto('https://playwright.dev/');
-
-  // Expect a title "to contain" a substring.
-  await expect(page).toHaveTitle(/Playwright/);
+test("has title", async ({ page }) => {
+  await page.goto("");
+  await expect(page).toHaveTitle("Swag Labs");
 });
 
-test('get started link', async ({ page }) => {
-  await page.goto('https://playwright.dev/');
+test("get started link", async ({ page }) => {
+  await page.goto("");
 
-  // Click the get started link.
-  await page.getByRole('link', { name: 'Get started' }).click();
+  await page.getByTestId("username").fill(usersData.username);
+  await page.getByTestId("password").fill(usersData.password);
 
-  // Expects page to have a heading with the name of Installation.
-  await expect(page.getByRole('heading', { name: 'Installation' })).toBeVisible();
+  await page.getByTestId("login-button").click();
+
+  await expect(page.getByText("Products")).toHaveText("Products");
 });
