@@ -1,12 +1,12 @@
 import { test, expect } from "@playwright/test";
 import { usersData } from "../test-data/users";
 
-test("has title", async ({ page }) => {
+test("landing page has title", async ({ page }) => {
   await page.goto("");
   await expect(page).toHaveTitle("Swag Labs");
 });
 
-test("get started link", async ({ page }) => {
+test("login with valid credentials", async ({ page }) => {
   await page.goto("");
 
   await page.getByTestId("username").fill(usersData.username);
