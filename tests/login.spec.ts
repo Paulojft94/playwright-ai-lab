@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { usersData } from "../test-data/users";
 
-test.describe("navigation", () => {
+test.describe("Login", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("");
   });
