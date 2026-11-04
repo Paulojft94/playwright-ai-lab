@@ -1,30 +1,31 @@
 import { test, expect } from "@playwright/test";
 import { usersData } from "../test-data/users";
 
-test("landing page has title", async ({ page }) => {
-  await page.goto("");
-  await expect(page).toHaveTitle("Swag Labs");
-});
+test.describe("navigation", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("");
+  });
 
-test("login with valid credentials", async ({ page }) => {
-  await page.goto("");
+  test("landing page has title", async ({ page }) => {
+    await expect(page).toHaveTitle("Swag Labs");
+  });
 
-  await page.getByTestId("username").fill(usersData.username);
-  await page.getByTestId("password").fill(usersData.password);
+  test("login with valid credentials", async ({ page }) => {
+    await page.getByTestId("username").fill(usersData.username);
+    await page.getByTestId("password").fill(usersData.password);
 
-  await page.getByTestId("login-button").click();
+    await page.getByTestId("login-button").click();
 
-  await expect(page.getByText("Products")).toHaveText("Products");
-});
+    await expect(page.getByText("Products")).toHaveText("Products");
+  });
 
-test("login with invalid credentials", async ({ page }) => {
-  await page.goto("");
+  test("login with invalid credentials", async ({ page }) => {
+    await page.getByTestId("username").fill("invalid_user");
+    await page.getByTestId("password").fill("invalid_password");
+    await page.getByTestId("login-button").click();
 
-  await page.getByTestId("username").fill("invalid_user");
-  await page.getByTestId("password").fill("invalid_password");
-  await page.getByTestId("login-button").click();
-
-  await expect(page.getByTestId("error")).toHaveText(
-    "Epic sadface: Username and password do not match any user in this service",
-  );
+    await expect(page.getByTestId("error")).toHaveText(
+      "Epic sadface: Username and password do not match any user in this service",
+    );
+  });
 });
