@@ -16,3 +16,15 @@ test("login with valid credentials", async ({ page }) => {
 
   await expect(page.getByText("Products")).toHaveText("Products");
 });
+
+test("login with invalid credentials", async ({ page }) => {
+  await page.goto("");
+
+  await page.getByTestId("username").fill("invalid_user");
+  await page.getByTestId("password").fill("invalid_password");
+  await page.getByTestId("login-button").click();
+
+  await expect(page.getByTestId("error")).toHaveText(
+    "Epic sadface: Username and password do not match any user in this service",
+  );
+});
