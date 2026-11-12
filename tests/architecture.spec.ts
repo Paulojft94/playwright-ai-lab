@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { usersData } from "../test-data/users";
-import { LoginPage } from "../page-object/LoginPage";
+import { LoginPage } from "../page-object/loginPage";
 
 test.describe("playing with playwright architecture", () => {
   test("opening two different BROWSER contexts", async ({ page, browser }) => {
