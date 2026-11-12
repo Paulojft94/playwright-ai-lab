@@ -1,15 +1,13 @@
 import { test, expect } from "@playwright/test";
 import { usersData } from "../test-data/users";
+import { LoginPage } from "../page-object/LoginPage";
 
 test.describe("playing with playwright architecture", () => {
-  test.skip("opening two different BROWSER contexts", async ({
-    page,
-    browser,
-  }) => {
+  test("opening two different BROWSER contexts", async ({ page, browser }) => {
     await page.goto("");
-    await page.getByTestId("username").fill(usersData.username);
-    await page.getByTestId("password").fill(usersData.password);
-    await page.getByTestId("login-button").click();
+
+    const loginPage = new LoginPage(page);
+    await loginPage.login(usersData.username, usersData.password);
 
     //opening second context
     const secondContext = await browser.newContext();
@@ -24,13 +22,11 @@ test.describe("playing with playwright architecture", () => {
     );
   });
 
-  test.skip("opening two different PAGE contexts", async ({ page }) => {
+  test("opening two different PAGE contexts", async ({ page }) => {
     await page.goto("");
 
-    await page.getByTestId("username").fill(usersData.username);
-    await page.getByTestId("password").fill(usersData.password);
-
-    await page.getByTestId("login-button").click();
+    const loginPage = new LoginPage(page);
+    await loginPage.login(usersData.username, usersData.password);
 
     await expect(page.getByText("Products")).toHaveText("Products");
 
