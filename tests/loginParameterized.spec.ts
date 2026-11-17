@@ -41,7 +41,7 @@ test.describe("login parameterized tests", () => {
 
 test.describe("login parameterized tests with iterator and factory", () => {
   for (const { username, password, expected } of Object.values(defaultUsers)) {
-    test.only(`testing with ${username} and ${password}`, async ({
+    test(`testing with ${username} and ${password}`, async ({
       page,
       loginPage,
     }) => {
