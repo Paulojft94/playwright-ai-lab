@@ -1,26 +1,22 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../fixtures/login";
 import { usersData, createUser } from "../test-data/users";
-import { LoginPage } from "../page-object/loginPage";
 
 test.describe("Login", () => {
-  let loginPage: LoginPage;
-
   test.beforeEach(async ({ page }) => {
     await page.goto("");
-    loginPage = new LoginPage(page);
   });
 
   test("landing page has title", async ({ page }) => {
     await expect(page).toHaveTitle("Swag Labs");
   });
 
-  test("login with valid credentials", async ({ page }) => {
+  test("login with valid credentials", async ({ page, loginPage }) => {
     await loginPage.login(usersData.username, usersData.password);
 
     await expect(page.getByText("Products")).toHaveText("Products");
   });
 
-  test("login with invalid credentials", async ({ page }) => {
+  test("login with invalid credentials", async ({ page, loginPage }) => {
     await loginPage.login(usersData.invalidUsername, usersData.invalidPassword);
 
     await expect(page.getByTestId("error")).toHaveText(
@@ -34,9 +30,11 @@ test.describe("Login with type utils", () => {
     await page.goto("");
   });
 
-  test("PARTIAL: login with invalid credentials", async ({ page }) => {
+  test("PARTIAL: login with invalid credentials", async ({
+    page,
+    loginPage,
+  }) => {
     const invalidUser = createUser({ password: "wrongPassword" });
-    const loginPage = new LoginPage(page);
 
     await loginPage.login(invalidUser.username, invalidUser.password);
 
@@ -45,15 +43,13 @@ test.describe("Login with type utils", () => {
     );
   });
 
-  test("Pick: login with valid credentials", async ({ page }) => {
+  test("Pick: login with valid credentials", async ({ page, loginPage }) => {
     type PickedUser = Pick<typeof usersData, "username" | "password">;
 
     const validUser: PickedUser = {
       username: usersData.username,
       password: usersData.password,
     };
-
-    const loginPage = new LoginPage(page);
 
     await loginPage.login(validUser.username, validUser.password);
 

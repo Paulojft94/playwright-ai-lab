@@ -1,26 +1,25 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../fixtures/login";
 import { usersData } from "../test-data/users";
-import { LoginPage } from "../page-object/loginPage";
 import { InventoryPage } from "../page-object/inventoryPage";
 import { CartPage } from "../page-object/cartPage.spec";
 
 test.describe("place an order", () => {
-  let loginPage: LoginPage;
   let inventoryPage: InventoryPage;
   let cartPage: CartPage;
 
   test.beforeEach(async ({ page }) => {
     await page.goto("");
-    loginPage = new LoginPage(page);
     inventoryPage = new InventoryPage(page);
     cartPage = new CartPage(page);
   });
 
-  test("place an order with valid credentials", async ({ page }) => {
-    await page.goto("");
+  test("place an order with valid credentials", async ({
+    page,
+    loginPage,
+  }) => {
     await loginPage.login(usersData.username, usersData.password);
 
-    expect(page.getByText("Products")).toHaveText("Products");
+    await expect(page.getByText("Products")).toHaveText("Products");
 
     await inventoryPage.addItemToCart("Sauce Labs Backpack");
     await inventoryPage.goToCart();
