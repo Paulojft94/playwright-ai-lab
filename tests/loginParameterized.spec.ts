@@ -1,4 +1,5 @@
 import { test, expect } from "../fixtures/login";
+import { defaultUsers } from "../test-data/users";
 
 test.describe("login parameterized tests", () => {
   test.beforeEach(async ({ page }) => {
@@ -36,4 +37,22 @@ test.describe("login parameterized tests", () => {
       await expect(page.getByTestId("error")).toHaveText(expected);
     });
   });
+});
+
+test.describe("login parameterized tests with iterator and factory", () => {
+  for (const { username, password, expected } of Object.values(defaultUsers)) {
+    test.only(`testing with ${username} and ${password}`, async ({
+      page,
+      loginPage,
+    }) => {
+      await page.goto("");
+      await loginPage.login(username, password);
+
+      if (expected) {
+        await expect(page.getByTestId("error")).toHaveText(expected);
+      } else {
+        await expect(page.getByText("Products")).toHaveText("Products");
+      }
+    });
+  }
 });
