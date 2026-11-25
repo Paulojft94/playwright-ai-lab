@@ -64,7 +64,15 @@ playwright.config.ts
 
 `playwright.config.ts` currently enables Chromium with the Desktop Chrome device settings, uses `https://www.saucedemo.com/` as the `baseURL`, and maps test IDs to the `data-test` attribute. Test discovery is limited to `tests/`, so the `CartPage` file outside that directory is a helper rather than a discovered test.
 
-Tests run in parallel with an HTML reporter. In CI, the configuration forbids `test.only`, uses one worker, and retries failures twice. Traces are collected on the first retry; local runs have no retries by default. The previous Playwright GitHub Actions workflow has been removed.
+Tests run in parallel with an HTML reporter. In CI, the configuration forbids `test.only`, uses one worker, and retries failures twice. Traces are collected on the first retry; local runs have no retries by default.
+
+## GitHub Actions
+
+`playwright-tests.yaml` runs the tests on pushes and pull requests targeting `main` or `master`.
+
+To run Chromium tests on demand, add a new comment containing exactly `/test` to an open pull request's conversation. `playwright-pr-comment.yaml` resolves and checks out that PR's current head commit, including changes from forks. Repository owners, organization members, and collaborators can trigger this workflow. The token has read-only permissions and checkout does not persist credentials.
+
+The comment workflow must first exist on the repository's default branch. Results are available in the Actions tab under **Playwright PR Comment**, with the tested SHA in the run summary and the HTML report in the run's artifacts. To test commits pushed after a run started, post a new `/test` comment.
 
 ## Running the tests
 
