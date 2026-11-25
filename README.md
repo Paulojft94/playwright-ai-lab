@@ -70,9 +70,13 @@ Tests run in parallel with an HTML reporter. In CI, the configuration forbids `t
 
 `playwright-tests.yaml` runs the tests on pushes and pull requests targeting `main` or `master`.
 
-To run Chromium tests on demand, add a new comment containing exactly `/test` to an open pull request's conversation. `playwright-pr-comment.yaml` resolves and checks out that PR's current head commit, including changes from forks. Repository owners, organization members, and collaborators can trigger this workflow. The token has read-only permissions and checkout does not persist credentials.
+To run Chromium tests on demand, add a new comment containing exactly `/test` to an open pull request's conversation. `playwright-pr-comment.yaml` resolves and checks out that PR's current head commit, including changes from forks. Repository owners, organization members, and collaborators can trigger this workflow. Tests run in a separate job with a read-only token and checkout does not persist credentials. Separate jobs publish the commit status and a short result comment without checking out or running PR code.
 
 The comment workflow must first exist on the repository's default branch. Results are available in the Actions tab under **Playwright PR Comment**, with the tested SHA in the run summary and the HTML report in the run's artifacts. To test commits pushed after a run started, post a new `/test` comment.
+
+The workflow publishes **Playwright / Chromium** on the tested PR commit: pending while running, then success or failure. Failures during setup and cancelled test jobs also produce a failing status. A final PR comment includes the result, tested commit, and run link. Requests for the same PR are serialized. If the entire workflow is cancelled before the reporting job can run, the status can remain pending; post `/test` again to rerun it.
+
+To block merging, configure the target branch in **Settings → Rules → Rulesets** (or **Settings → Branches → branch protection**): require status checks before merging and add exactly **Playwright / Chromium** as a required check. Run `/test` once after installing the workflow so GitHub can offer that status in the selector. Enable the rule for the target branch and remove any bypass permissions if it must apply to administrators too. This repository setting cannot be enforced by the workflow YAML alone. Once required, every PR head commit needs a successful `/test` run, including after new pushes; the automatic workflow does not satisfy this separate status.
 
 ## Running the tests
 

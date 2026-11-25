@@ -7,16 +7,25 @@ on:
 
 permissions:
   contents: read
-  pull-requests: read
+
+# Serialize requests for the same PR so an older run cannot overwrite a newer result.
+concurrency:
+  group: playwright-pr-comment-${{ github.event.issue.number }}
+  cancel-in-progress: false
 
 jobs:
-  test:
+  prepare:
     if: >-
       github.event.issue.pull_request &&
       github.event.comment.body == '/test' &&
       contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
     runs-on: ubuntu-24.04
-    timeout-minutes: 75
+    permissions:
+      contents: read
+      pull-requests: read
+      statuses: write
+    outputs:
+      sha: ${{ steps.pr.outputs.sha }}
     steps:
       - name: Resolve pull request commit
         id: pr
@@ -31,16 +40,32 @@ jobs:
               core.setFailed('The pull request must be open.');
               return;
             }
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            await github.rest.repos.createCommitStatus({
+              ...context.repo,
+              sha: pr.head.sha,
+              state: 'pending',
+              context: 'Playwright / Chromium',
+              description: 'Testes Chromium a correr.',
+              target_url: runUrl,
+            });
             core.setOutput('sha', pr.head.sha);
             await core.summary
               .addHeading(`Playwright: PR #${pr.number}`)
               .addRaw(`Testing commit: ${pr.head.sha}`)
               .write();
 
+  test:
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    permissions:
+      contents: read
+    steps:
       - name: Checkout pull request code
         uses: actions/checkout@v6
         with:
-          ref: ${{ steps.pr.outputs.sha }}
+          ref: ${{ needs.prepare.outputs.sha }}
           persist-credentials: false
 
       - uses: actions/setup-node@v6
@@ -64,3 +89,47 @@ jobs:
           name: playwright-report-pr-${{ github.event.issue.number }}
           path: playwright-report/
           retention-days: 30
+
+  report:
+    needs: [prepare, test]
+    if: ${{ always() && needs.prepare.result == 'success' && needs.prepare.outputs.sha != '' }}
+    runs-on: ubuntu-24.04
+    permissions:
+      statuses: write
+      issues: write
+    steps:
+      - name: Publish commit status and PR comment
+        uses: actions/github-script@v8
+        env:
+          PR_SHA: ${{ needs.prepare.outputs.sha }}
+          TEST_RESULT: ${{ needs.test.result }}
+        with:
+          script: |
+            const sha = process.env.PR_SHA;
+            const result = process.env.TEST_RESULT;
+            const passed = result === 'success';
+            const message = passed
+              ? '✅ Playwright / Chromium: passou.'
+              : result === 'cancelled'
+                ? '⚪ Playwright / Chromium: execução cancelada.'
+                : '❌ Playwright / Chromium: falhou.';
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            // Attempt both updates even if one of the API calls fails.
+            const updates = await Promise.allSettled([
+              github.rest.repos.createCommitStatus({
+                ...context.repo,
+                sha,
+                state: passed ? 'success' : 'failure',
+                context: 'Playwright / Chromium',
+                description: message,
+                target_url: runUrl,
+              }),
+              github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: context.issue.number,
+                body: `${message}\n\nCommit: \`${sha}\` · [Ver execução e relatório](${runUrl})`,
+              }),
+            ]);
+            for (const update of updates) {
+              if (update.status === 'rejected') core.setFailed(update.reason.message);
+            }
