@@ -6,7 +6,8 @@ on:
     branches: [main, master]
 jobs:
   test:
-    runs-on: ubuntu-latest
+    # Keep the runner compatible with the locked Playwright version.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
