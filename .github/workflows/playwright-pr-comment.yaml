@@ -96,7 +96,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       statuses: write
-      issues: write
+      pull-requests: write
     steps:
       - name: Publish commit status and PR comment
         uses: actions/github-script@v8
@@ -130,6 +130,14 @@ jobs:
                 body: `${message}\n\nCommit: \`${sha}\` · [Ver execução e relatório](${runUrl})`,
               }),
             ]);
-            for (const update of updates) {
-              if (update.status === 'rejected') core.setFailed(update.reason.message);
+            const operations = ['Atualizar estado do commit', 'Publicar comentário no PR'];
+            for (const [index, update] of updates.entries()) {
+              if (update.status === 'fulfilled') {
+                core.info(`${operations[index]}: concluído.`);
+                continue;
+              }
+              const error = update.reason;
+              const required = error.response?.headers?.['x-accepted-github-permissions'];
+              core.setFailed(`${operations[index]}: ${error.message} (HTTP ${error.status ?? 'desconhecido'}).`);
+              if (required) core.info(`Permissões exigidas pelo GitHub: ${required}`);
             }
