@@ -28,14 +28,17 @@ test.describe("login parameterized tests", () => {
         "Epic sadface: Username and password do not match any user in this service",
     },
   ].forEach(({ username, password, expected }) => {
-    test(`testing with ${username} and ${password}`, async ({
-      page,
-      loginPage,
-    }) => {
-      await loginPage.login(username, password);
+    test(
+      `testing with ${username} and ${password}`,
+      {
+        tag: "@regression",
+      },
+      async ({ page, loginPage }) => {
+        await loginPage.login(username, password);
 
-      await expect(page.getByTestId("error")).toHaveText(expected);
-    });
+        await expect(page.getByTestId("error")).toHaveText(expected);
+      },
+    );
   });
 });
 

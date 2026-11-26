@@ -111,3 +111,61 @@ Use UI mode to explore the tests, or view the HTML report after a run:
 npx playwright test --ui
 npx playwright show-report
 ```
+
+## Tags and annotations
+
+Tags select tests; annotations add report metadata or control execution. See the [Playwright annotations documentation](https://playwright.dev/docs/test-annotations).
+
+### Tagging tests
+
+Pass tags in the second argument of `test()`. Tags must start with `@`:
+
+```ts
+test("landing page has title", { tag: "@regression" }, async ({ page }) => {
+  await expect(page).toHaveTitle("Swag Labs");
+});
+```
+
+Writing `tag: "@regression";` inside the callback creates a JavaScript label, so Playwright will not register a tag.
+
+Use `tag: ["@regression", "@smoke"]` for multiple tags. Tag a whole group with `test.describe("Login", { tag: "@regression" }, () => { /* tests */ });`.
+
+```bash
+# Run tagged tests
+npx playwright test --grep @regression
+
+# List without executing
+npx playwright test --list
+npx playwright test --grep @regression --list
+
+# Exclude a tag, or match either tag
+npx playwright test --grep-invert @regression
+npx playwright test --grep "@regression|@smoke"
+```
+
+These examples require adding tags to the tests first. No matching titles or tags results in `No tests found`.
+
+### Built-in annotations
+
+| API | Behavior |
+| --- | --- |
+| `test.skip()` | Skips an inapplicable test. |
+| `test.fixme()` | Skips a test awaiting a fix. |
+| `test.fail()` | Expects failure; an unexpected pass fails the run. |
+| `test.slow()` | Triples the test timeout. |
+| `test.only()` | Focuses execution; this project's CI rejects it through `forbidOnly`. |
+
+### Custom annotations
+
+Add context to the HTML report:
+
+```ts
+test("landing page has title", {
+  tag: "@regression",
+  annotation: { type: "feature", description: "Login page title" },
+}, async ({ page }) => {
+  await expect(page).toHaveTitle("Swag Labs");
+});
+```
+
+Use tags for `--grep` filtering; custom annotations supply report context.
