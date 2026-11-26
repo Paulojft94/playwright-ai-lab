@@ -68,7 +68,7 @@ Tests run in parallel with an HTML reporter. In CI, the configuration forbids `t
 
 ## GitHub Actions
 
-`playwright-tests.yaml` runs the tests on pushes and pull requests targeting `main` or `master`.
+`playwright-tests.yaml` runs the tests on pushes and pull requests targeting `master`.
 
 To run Chromium tests on demand, add a new comment containing exactly `/test` to an open pull request's conversation. `playwright-pr-comment.yaml` resolves and checks out that PR's current head commit, including changes from forks. Repository owners, organization members, and collaborators can trigger this workflow. Tests run in a separate job with a read-only token and checkout does not persist credentials. Separate jobs publish the commit status and a short result comment without checking out or running PR code.
 
