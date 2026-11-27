@@ -1,5 +1,7 @@
 # Test generation (plan → generate → heal)
 
+For this repository, first read [the engineering rules](../../../../../AGENTS.md) and [the test automation patterns](../../../../../specs/engineering/Test-automation-patterns.md). The raw calls in the generic examples below illustrate CLI output. Final new/refactored tests, hooks, and helpers must use page-specific PageObjects under `page-object/`, with one PageObject class per file. Translate browser actions into those classes before saving specs.
+
 End-to-end workflow for authoring and maintaining Playwright tests with `playwright-cli`. Every `playwright-cli` action emits the equivalent Playwright TypeScript, and that generated code is the raw material for every test. The sections below can be used independently:
 
 - **How generation works** — the core mechanic everything else relies on: actions become TypeScript, plus how to add assertions.

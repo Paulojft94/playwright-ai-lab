@@ -2,6 +2,12 @@
 
 This project is a space for learning and experimenting with Playwright, TypeScript, and AI-assisted testing against Sauce Demo. The experiments cover browser architecture and session isolation, login scenarios, reusable Page Objects, custom fixtures, test data, checkout, and cancellation. The AI work explores browser interaction, test planning, test generation, and failure investigation through both Playwright MCP agents and Playwright CLI skills.
 
+## Engineering rules
+
+[Test-automation-patterns.md](specs/engineering/Test-automation-patterns.md) is the project-wide context for test automation. Read it before planning, generating, implementing, refactoring, or healing tests. [AGENTS.md](AGENTS.md), the Copilot instructions, the MCP agent roles, and the CLI skill all reference it.
+
+**New and refactored Playwright tests must use PageObjects**, with one page-specific class per file under `page-object/`, following [Playwright's POM guidance](https://playwright.dev/docs/pom). Scenario assertions stay visible in the tests; selectors and UI interactions belong to the owning PageObject, including when used from hooks or support helpers.
+
 ## AI-assisted testing: plan, generate, run, heal
 
 The workflow starts with exploring the live application, records observable behavior in a Markdown plan, turns its scenarios into tests, and runs those tests. When a test fails, inspect the actual page and failure evidence, identify the cause, correct the test when appropriate, and rerun it. An application defect or an unclear requirement needs investigation; changing an assertion just to obtain a passing test is not a fix.
@@ -154,15 +160,19 @@ In Playwright, a **browser** represents the browser instance started by a test. 
 
 ## Page Objects and fixtures
 
-Repeated UI interactions have been moved into typed Page Object classes:
+The application pages have separate typed PageObject classes:
 
 - `LoginPage` fills the credentials and submits the login form.
 - `InventoryPage` finds a product by name, adds it to the cart, and opens the cart.
-- `CartPage` starts checkout, fills customer information, continues, and finishes the order.
+- `ProductDetailsPage` handles a selected product's details, cart actions, and return to Products.
+- `CartPage` handles cart contents, removal, cleanup, Continue Shopping, and starting checkout.
+- `CheckoutInformationPage` fills customer information and continues or cancels checkout.
+- `CheckoutOverviewPage` exposes selected products and totals, and finishes or cancels checkout.
+- `CheckoutCompletePage` exposes confirmation and receipt controls, downloads the PDF, and returns home.
 
 These classes use Playwright's `Page` and `Locator` types, `getByTestId`, and role-based locators. Assertions remain in the test files so each scenario states its expected outcome.
 
-`fixtures/login.ts` extends Playwright's base `test` with a typed `loginPage` fixture and re-exports `expect`. Login, parameterized login, and order tests request this fixture directly; architecture tests instantiate `LoginPage` themselves. The fixture creates the Page Object; navigation and login are still performed by each test.
+`fixtures/login.ts` provides the reusable login fixture. [fixtures/pages.ts](fixtures/pages.ts) extends it with test-scoped instances for all other pages. The refactored [order test](tests/order.spec.ts) uses these fixtures and page-owned locators instead of raw page call chains; [page-objects.spec.ts](tests/page-objects.spec.ts) checks the product-details/cart flow. Existing suites migrate to this pattern when refactored.
 
 ## Checkout experiment
 
@@ -175,23 +185,32 @@ The scenario checks `Checkout: Your Information` after starting checkout and `Ch
 ```text
 fixtures/
   login.ts                       # Custom loginPage fixture
+  pages.ts                       # Typed fixtures for all application PageObjects
 page-object/
   LoginPage.ts                   # Login interactions (tracked filename case)
   inventoryPage.ts               # Product selection and cart navigation
-  cartPage.spec.ts               # CartPage class (despite the .spec.ts suffix)
+  productDetailsPage.ts          # Selected product details
+  cartPage.ts                    # Cart contents and actions
+  checkoutInformationPage.ts     # Checkout customer-information form
+  checkoutOverviewPage.ts        # Order review, cancellation, and Finish
+  checkoutCompletePage.ts        # Confirmation and receipt
 test-data/
   users.ts                       # Shared credentials and typed user factory
 tests/
   architecture.spec.ts           # Context isolation and shared page state
   login.spec.ts                  # Basic login and TypeScript utility types
   loginParameterized.spec.ts     # Table-driven login error scenarios
-  order.spec.ts                  # Checkout flow under development
+  order.spec.ts                  # Checkout flow using page-specific PageObjects
+  page-objects.spec.ts           # Product-details/cart behavior using PageObjects
   seed.spec.ts                   # Authenticated starting point for agent exploration
   place-a-single-product-order.spec.ts # Generated order checks, split into independent tests
   cancel-order/                  # CLI-generated cancellation specs and shared lifecycle hooks
 specs/testing/
   order.md                       # MCP-based order plan
   cancel-order.md                # CLI-based cancellation plan
+specs/engineering/
+  Test-automation-patterns.md    # Project-wide test automation context
+AGENTS.md                       # Engineering rules and context entry point
 .vscode/mcp.json                 # Playwright test MCP server configuration
 .github/chatmodes/               # Planner, Generator, and Healer instructions
 .github/.agents/skills/playwright-cli/ # CLI skill and workflow references
@@ -200,7 +219,7 @@ playwright.config.ts
 
 ## Configuration
 
-`playwright.config.ts` currently enables Chromium with the Desktop Chrome device settings, uses `https://www.saucedemo.com/` as the `baseURL`, and maps test IDs to the `data-test` attribute. Test discovery is limited to `tests/`, so the `CartPage` file outside that directory is a helper rather than a discovered test.
+`playwright.config.ts` currently enables Chromium with the Desktop Chrome device settings, uses `https://www.saucedemo.com/` as the `baseURL`, and maps test IDs to the `data-test` attribute. Test discovery is limited to `tests/`; PageObjects live under `page-object/` and use `.ts` filenames without the `.spec.ts` test suffix.
 
 Tests run in parallel with the list reporter. In CI, the configuration forbids `test.only`, uses one worker, and retries failures twice. Traces are collected on the first retry; local runs have no retries by default. Use `--reporter=html` when an HTML report is needed.
 

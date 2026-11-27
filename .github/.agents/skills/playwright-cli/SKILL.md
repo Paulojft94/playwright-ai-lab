@@ -6,6 +6,10 @@ allowed-tools: Bash(playwright-cli:*) Bash(npx playwright:*) Bash(npx --no-insta
 
 # Browser Automation with playwright-cli
 
+## Project engineering context
+
+Before planning, generating, refactoring, or healing this project's tests, read [AGENTS.md](../../../../AGENTS.md) and [Test-automation-patterns.md](../../../../specs/engineering/Test-automation-patterns.md). New and refactored saved tests, hooks, and support helpers must use PageObjects under `page-object/`, with one page per class and one PageObject class per file. Direct CLI interactions are appropriate for exploration; translate their raw generated actions into PageObject methods for the final specs.
+
 ## Quick start
 
 ```bash
