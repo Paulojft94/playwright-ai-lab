@@ -123,7 +123,7 @@ This project is locked to Playwright **1.56.1**. Its test runner does not offer 
 | MCP order generation | [place-a-single-product-order.spec.ts](tests/place-a-single-product-order.spec.ts), subsequently split into eight independent tests. |
 | CLI-only login | Reached `/inventory.html` and Products using the public demo credentials. |
 | CLI cancellation planning | [cancel-order.md](specs/testing/cancel-order.md): eight scenarios covering cart removal and abandoning checkout. |
-| CLI cancellation generation | [tests/cancel-order](tests/cancel-order/): 12 tests including all variants, with setup and cleanup registered through [support.ts](tests/cancel-order/support.ts). All 12 passed in Chromium with retries disabled in the recorded run. |
+| CLI cancellation generation | [cancel-order.spec.ts](tests/cancel-order/cancel-order.spec.ts): 12 tests including all variants, with setup and cleanup registered through [support.ts](tests/cancel-order/support.ts). All 12 passed in Chromium with retries disabled in the recorded run. |
 | Failure correction | [order.spec.ts](tests/order.spec.ts) expected the previous page's title after Checkout and Continue. Correcting both destination titles produced a passing run. The cancellation suite required no healing. |
 
 Cancellation setup adds and verifies the required products in `beforeEach`. Cleanup removes remaining products through the UI in `afterEach`; Playwright disposes the test's isolated browser context. Each scenario can run independently, including in parallel.
@@ -208,7 +208,7 @@ tests/
   product-details.spec.ts        # Product-details/cart behavior using PageObjects
   seed.spec.ts                   # Authenticated starting point for agent exploration
   place-a-single-product-order.spec.ts # Generated order checks, split into independent tests
-  cancel-order/                  # CLI-generated cancellation specs and shared lifecycle hooks
+  cancel-order/                  # Consolidated cancellation spec and shared lifecycle hooks
 specs/testing/
   order.md                       # MCP-based order plan
   cancel-order.md                # CLI-based cancellation plan

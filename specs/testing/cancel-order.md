@@ -173,20 +173,20 @@ Use `Ana` / `Silva` / `1000-001` when complete customer details are needed. No s
 
 ## Generated automated coverage
 
-The subsequent CLI-based generation task implemented the plan in `tests/cancel-order/`, with one independent test per spec file. All 12 tests passed in Chromium on 27 November 2026, with retries disabled, including their setup and cleanup hooks.
+The CLI-based coverage is consolidated in `tests/cancel-order/cancel-order.spec.ts`, with 12 independent tests grouped by single-item and two-item setup. All 12 tests passed in Chromium on 27 November 2026, with retries disabled, including their setup and cleanup hooks.
 
-| Scenario | Spec file(s) in `tests/cancel-order/` |
+| Scenario | Test name(s) in `cancel-order.spec.ts` |
 | --- | --- |
-| CART-CANCEL-01 | `remove-the-only-item-from-cart.spec.ts` |
-| CART-CANCEL-02 | `remove-one-item-without-removing-another.spec.ts` |
-| CART-CANCEL-03 | `keep-a-removed-item-absent-after-reload.spec.ts` |
-| CART-CANCEL-04 | `re-add-an-item-after-clearing-the-cart.spec.ts` |
-| CART-CANCEL-05 | `cancel-checkout-from-customer-information-blank-fields.spec.ts`, `cancel-checkout-from-customer-information-partial-details.spec.ts`, `cancel-checkout-from-customer-information-complete-details.spec.ts` |
-| CART-CANCEL-06 | `cancel-after-a-customer-information-validation-error.spec.ts` |
-| CART-CANCEL-07 | `cancel-checkout-from-order-overview-single-item.spec.ts`, `cancel-checkout-from-order-overview-two-items.spec.ts` |
-| CART-CANCEL-08 | `clear-the-cart-after-abandoning-checkout-customer-information.spec.ts`, `clear-the-cart-after-abandoning-checkout-order-overview.spec.ts` |
+| CART-CANCEL-01 | `remove-the-only-item-from-cart` |
+| CART-CANCEL-02 | `remove-one-item-without-removing-another` |
+| CART-CANCEL-03 | `keep-a-removed-item-absent-after-reload` |
+| CART-CANCEL-04 | `re-add-an-item-after-clearing-the-cart` |
+| CART-CANCEL-05 | `cancel-checkout-from-customer-information-blank-fields`, `cancel-checkout-from-customer-information-partial-details`, `cancel-checkout-from-customer-information-complete-details` |
+| CART-CANCEL-06 | `cancel-after-a-customer-information-validation-error` |
+| CART-CANCEL-07 | `cancel-checkout-from-order-overview-single-item`, `cancel-checkout-from-order-overview-two-items` |
+| CART-CANCEL-08 | `clear-the-cart-after-abandoning-checkout-customer-information`, `clear-the-cart-after-abandoning-checkout-order-overview` |
 
-Each spec imports the shared `test` and `expect` from `fixtures/pages.ts` and registers the hooks in `support.ts`. The hooks and workflow helpers receive PageObjects through fixtures. `beforeEach` logs in with a fresh browser context, records the selected products' displayed names/prices, adds them, and verifies the populated cart before the test. `afterEach` uses `CartPage` to return to the cart, remove remaining items through the UI, and verify the empty cart; Playwright's context teardown disposes authentication and browser storage. Product expectations live in `test-data/products.ts`; the recorded item list is scoped to each test through the `cartItems` fixture, so parallel runs do not share cart data.
+The consolidated spec imports the shared `test` and `expect` from `fixtures/pages.ts`. Its single-item and two-item groups each register the hooks in `support.ts`, so every test receives the correct populated cart and its own cleanup. The hooks and workflow helpers receive PageObjects through fixtures. `beforeEach` logs in with a fresh browser context, records the selected products' displayed names/prices, adds them, and verifies the populated cart before the test. `afterEach` uses `CartPage` to return to the cart, remove remaining items through the UI, and verify the empty cart; Playwright's context teardown disposes authentication and browser storage. Product expectations live in `test-data/products.ts`; the recorded item list is scoped to each test through the `cartItems` fixture, so parallel runs do not share cart data.
 
 Run this coverage with:
 
