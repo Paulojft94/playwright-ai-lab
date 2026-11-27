@@ -28,14 +28,16 @@ test.describe("place an order", () => {
 
     await cartPage.goToCheckout();
 
-    await expect(page.getByTestId("title")).toHaveText("Your Cart");
+    await expect(page.getByTestId("title")).toHaveText(
+      "Checkout: Your Information",
+    );
 
     await cartPage.fillUserInformation("John", "Doe", "12345");
 
     await cartPage.clickContinue();
 
     await expect(page.getByTestId("title")).toHaveText(
-      "Checkout: Your Information",
+      "Checkout: Overview",
     );
 
     await cartPage.completeCheckout();

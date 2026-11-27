@@ -263,7 +263,7 @@ Scenarios marked **Observed baseline** verify behavior directly explored, with a
 - Prioritize ORD-01, ORD-02, ORD-06, ORD-07, and ORD-08, then cart/cancel/reset/PDF coverage. Keep requirement-decision probes separate from mandatory product acceptance tests.
 - Reuse the existing login fixture/Page Objects. Scope Add to cart/Remove to the named product or cart row, since several buttons share accessible names. Prefer current `data-test` locators and role/name locators verified through MCP; do not copy transient MCP snapshot refs into tests.
 - The live cart control is an accessible button named like `Cart, empty` or `Cart, 2 items`; product details are buttons. Reinspect the current DOM before relying on historical link-role selectors.
-- Existing `tests/order.spec.ts` expects the previous screen title after starting Checkout and after Continue. Align those future assertions with **Checkout: Your Information** and **Checkout: Overview**, respectively. This planning task does not modify those tests.
+- `tests/order.spec.ts` now asserts **Checkout: Your Information** after starting Checkout and **Checkout: Overview** after Continue. These assertions were corrected and the test verified in Chromium after the original planning task.
 - Use web-first assertions for URLs, stage titles, row contents, totals, alerts, and completion. Avoid fixed sleeps. For receipt generation, register the download wait before the click.
 - No numerical name/postal length boundary, PDF content structure, keyboard-only flow, browser-back behavior, refresh behavior, backend order identifier, payment authorization, or durable order history was verified. These are follow-up investigations, not inferred capabilities.
 
