@@ -1,127 +1,113 @@
-import type { Page } from "@playwright/test";
-import { test as loginTest, expect } from "../../fixtures/login";
+import { test, expect, type PageFixtures } from "../../fixtures/pages";
+import { backpack, type CartItem } from "../../test-data/products";
 import { usersData } from "../../test-data/users";
 
-export type CartItem = { name: string; price: string };
-export const backpack: CartItem = { name: "Sauce Labs Backpack", price: "$29.99" };
-export const bikeLight: CartItem = { name: "Sauce Labs Bike Light", price: "$9.99" };
+type TitledPage = Pick<PageFixtures["cartPage"], "page" | "title">;
+type CartHeader = Pick<PageFixtures["cartPage"], "cartBadge" | "cartLink">;
+type SelectionPage = Pick<PageFixtures["cartPage"],
+  "items" | "cartBadge" | "item" | "itemName" | "itemQuantity" | "itemPrice"
+>;
 
-// A new recorded item list is created for every test, including parallel runs.
-export const test = loginTest.extend<{ cartItems: CartItem[] }>({
-  cartItems: async ({}, use) => {
-    await use([]);
-  },
-});
-export { expect };
-
-export function productRow(page: Page, name: string) {
-  return page.getByTestId("inventory-item").filter({
-    has: page.getByTestId("inventory-item-name").getByText(name, { exact: true }),
-  });
+export async function expectStage(view: TitledPage, path: string, title: string) {
+  await expect(view.page).toHaveURL(new URL(path, "https://www.saucedemo.com/").href);
+  await expect(view.title).toHaveText(title);
 }
 
-export async function expectStage(page: Page, path: string, title: string) {
-  await expect(page).toHaveURL(new URL(path, "https://www.saucedemo.com/").href);
-  await expect(page.getByTestId("title")).toHaveText(title);
+export async function expectNoCompletion(complete: PageFixtures["checkoutCompletePage"]) {
+  await expect(complete.page).not.toHaveURL(/\/checkout-complete\.html$/);
+  await expect(complete.header).not.toBeVisible();
+  await expect(complete.dispatchMessage).not.toBeVisible();
 }
 
-export async function expectNoCompletion(page: Page) {
-  await expect(page).not.toHaveURL(/\/checkout-complete\.html$/);
-  await expect(page.getByTestId("complete-header")).not.toBeVisible();
-  await expect(page.getByText(
-    "Your order has been dispatched, and will arrive just as fast as the pony can get there!",
-    { exact: true },
-  )).not.toBeVisible();
+export async function expectEmptyBadge(view: CartHeader) {
+  await expect(view.cartBadge).toHaveCount(0);
+  await expect(view.cartLink).toHaveAccessibleName("Cart, empty");
 }
 
-export async function expectEmptyBadge(page: Page) {
-  await expect(page.getByTestId("shopping-cart-badge")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Cart, empty", exact: true })).toBeVisible();
+export async function expectEmptyCart(
+  cart: PageFixtures["cartPage"], complete: PageFixtures["checkoutCompletePage"],
+) {
+  await expectStage(cart, "/cart.html", "Your Cart");
+  await expect(cart.items).toHaveCount(0);
+  await expectEmptyBadge(cart);
+  await expectNoCompletion(complete);
 }
 
-export async function expectEmptyCart(page: Page) {
-  await expectStage(page, "/cart.html", "Your Cart");
-  await expect(page.getByTestId("inventory-item")).toHaveCount(0);
-  await expectEmptyBadge(page);
-  await expectNoCompletion(page);
-}
-
-export async function expectSelection(page: Page, items: readonly CartItem[]) {
-  await expect(page.getByTestId("inventory-item")).toHaveCount(items.length);
-  await expect(page.getByTestId("shopping-cart-badge")).toHaveText(String(items.length));
+export async function expectSelection(view: SelectionPage, items: readonly CartItem[]) {
+  await expect(view.items).toHaveCount(items.length);
+  await expect(view.cartBadge).toHaveText(String(items.length));
   for (const item of items) {
-    const row = productRow(page, item.name);
-    await expect(row).toHaveCount(1);
-    await expect(row.getByTestId("inventory-item-name")).toHaveText(item.name);
-    await expect(row.getByTestId("item-quantity")).toHaveText("1");
-    await expect(row.getByTestId("inventory-item-price")).toHaveText(item.price);
+    await expect(view.item(item.name)).toHaveCount(1);
+    await expect(view.itemName(item.name)).toHaveText(item.name);
+    await expect(view.itemQuantity(item.name)).toHaveText("1");
+    await expect(view.itemPrice(item.name)).toHaveText(item.price);
   }
 }
 
-export async function expectCart(page: Page, items: readonly CartItem[]) {
-  await expectStage(page, "/cart.html", "Your Cart");
-  await expectSelection(page, items);
-  await expectNoCompletion(page);
+export async function expectCart(
+  cart: PageFixtures["cartPage"], items: readonly CartItem[],
+  complete: PageFixtures["checkoutCompletePage"],
+) {
+  await expectStage(cart, "/cart.html", "Your Cart");
+  await expectSelection(cart, items);
+  await expectNoCompletion(complete);
 }
 
-export async function openCart(page: Page) {
-  await page.getByTestId("shopping-cart-link").click();
-  await expectStage(page, "/cart.html", "Your Cart");
+export async function openCart(
+  inventory: PageFixtures["inventoryPage"], cart: PageFixtures["cartPage"],
+) {
+  await inventory.goToCart();
+  await expectStage(cart, "/cart.html", "Your Cart");
 }
 
-export async function openCustomerInformation(page: Page, itemCount = 1) {
-  await page.getByRole("button", { name: "Checkout", exact: true }).click();
-  await expectStage(page, "/checkout-step-one.html", "Checkout: Your Information");
-  await expect(page.getByTestId("shopping-cart-badge")).toHaveText(String(itemCount));
+export async function openCustomerInformation(
+  cart: PageFixtures["cartPage"], information: PageFixtures["checkoutInformationPage"],
+  itemCount = 1,
+) {
+  await cart.goToCheckout();
+  await expectStage(information, "/checkout-step-one.html", "Checkout: Your Information");
+  await expect(information.cartBadge).toHaveText(String(itemCount));
 }
 
-export async function fillCustomerInformation(page: Page) {
-  await page.getByRole("textbox", { name: "First Name", exact: true }).fill("Ana");
-  await page.getByRole("textbox", { name: "Last Name", exact: true }).fill("Silva");
-  await page.getByRole("textbox", { name: "Zip/Postal Code", exact: true }).fill("1000-001");
+export async function fillCustomerInformation(information: PageFixtures["checkoutInformationPage"]) {
+  await information.fillUserInformation("Ana", "Silva", "1000-001");
 }
 
-export async function openOverview(page: Page, itemCount = 1) {
-  await openCustomerInformation(page, itemCount);
-  await fillCustomerInformation(page);
-  await page.getByRole("button", { name: "Continue", exact: true }).click();
-  await expectStage(page, "/checkout-step-two.html", "Checkout: Overview");
+export async function openOverview(
+  cart: PageFixtures["cartPage"], information: PageFixtures["checkoutInformationPage"],
+  overview: PageFixtures["checkoutOverviewPage"], itemCount = 1,
+) {
+  await openCustomerInformation(cart, information, itemCount);
+  await fillCustomerInformation(information);
+  await information.clickContinue();
+  await expectStage(overview, "/checkout-step-two.html", "Checkout: Overview");
 }
 
-// Register within each spec's describe so every file gets both lifecycle hooks.
 export function registerCartHooks(products: readonly CartItem[] = [backpack]) {
-  test.beforeEach(async ({ page, loginPage, cartItems }) => {
-    await page.goto("");
+  test.beforeEach(async ({ loginPage, inventoryPage, cartPage, checkoutCompletePage, cartItems }) => {
+    await loginPage.goto();
     await loginPage.login(usersData.username, usersData.password);
-    await expectStage(page, "/inventory.html", "Products");
-    await expectEmptyBadge(page);
-
+    await expectStage(inventoryPage, "/inventory.html", "Products");
+    await expectEmptyBadge(inventoryPage);
     for (const product of products) {
-      const row = productRow(page, product.name);
-      await expect(row).toHaveCount(1);
-      await expect(row.getByTestId("inventory-item-price")).toHaveText(product.price);
+      await expect(inventoryPage.item(product.name)).toHaveCount(1);
+      await expect(inventoryPage.itemPrice(product.name)).toHaveText(product.price);
       cartItems.push({
-        name: await row.getByTestId("inventory-item-name").innerText(),
-        price: await row.getByTestId("inventory-item-price").innerText(),
+        name: await inventoryPage.itemName(product.name).innerText(),
+        price: await inventoryPage.itemPrice(product.name).innerText(),
       });
-      await row.getByRole("button", { name: "Add to cart", exact: true }).click();
-      await expect(row.getByRole("button", { name: "Remove", exact: true })).toBeVisible();
+      await inventoryPage.addItemToCart(product.name);
+      await expect(inventoryPage.removeButton(product.name)).toBeVisible();
     }
-    await expect(page.getByTestId("shopping-cart-badge")).toHaveText(String(products.length));
-    await openCart(page);
-    await expectCart(page, cartItems);
+    await expect(inventoryPage.cartBadge).toHaveText(String(products.length));
+    await openCart(inventoryPage, cartPage);
+    await expectCart(cartPage, cartItems, checkoutCompletePage);
   });
 
-  test.afterEach(async ({ page }) => {
-    // Remove only this test's cart data through the UI; context teardown clears auth.
-    if (page.isClosed()) return;
-    await page.goto("/cart.html");
-    await expectStage(page, "/cart.html", "Your Cart");
-    const removeButtons = page.getByRole("button", { name: "Remove", exact: true });
-    for (let remaining = await removeButtons.count(); remaining > 0; remaining--) {
-      await removeButtons.first().click();
-      await expect(removeButtons).toHaveCount(remaining - 1);
-    }
-    await expectEmptyCart(page);
+  test.afterEach(async ({ cartPage, checkoutCompletePage }) => {
+    if (cartPage.page.isClosed()) return;
+    await cartPage.goto();
+    await cartPage.clear();
+    await expectEmptyCart(cartPage, checkoutCompletePage);
   });
 }

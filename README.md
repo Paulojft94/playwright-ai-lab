@@ -144,8 +144,8 @@ In Playwright, a **browser** represents the browser instance started by a test. 
 `tests/architecture.spec.ts` contains three active experiments:
 
 - Log in on one page, then open the inventory in a separate browser context and check that the second session cannot access it without logging in.
-- Open a second page in the same context and log its cookies before and after adding a cookie through the original page's context, to observe shared state. The second page is closed in a `finally` block.
-- Add different values for the same cookie in two separate contexts and log both sets of cookies to observe isolation. Close the second context in a `finally` block and assert that only one context remains.
+- Open a second page in the same context, verify it shares authentication, and assert that a cookie added through the first page is visible through the second. A fixture closes the additional tab.
+- Add different values for the same cookie in two separate contexts and assert each context retains its own value. Close the additional context and assert that only one context remains; fixture teardown also ensures cleanup on failure.
 
 ## Login and test data experiments
 
@@ -172,7 +172,9 @@ The application pages have separate typed PageObject classes:
 
 These classes use Playwright's `Page` and `Locator` types, `getByTestId`, and role-based locators. Assertions remain in the test files so each scenario states its expected outcome.
 
-`fixtures/login.ts` provides the reusable login fixture. [fixtures/pages.ts](fixtures/pages.ts) extends it with test-scoped instances for all other pages. The refactored [order test](tests/order.spec.ts) uses these fixtures and page-owned locators instead of raw page call chains; [page-objects.spec.ts](tests/page-objects.spec.ts) checks the product-details/cart flow. Existing suites migrate to this pattern when refactored.
+All specs import `test` and `expect` from [fixtures/pages.ts](fixtures/pages.ts), which composes the login fixture, page fixtures, and test-scoped cart data. [fixtures/browserContexts.ts](fixtures/browserContexts.ts) provides additional tabs/contexts and their PageObjects for the architecture tests, with automatic cleanup and an inherited base URL for the isolated context. Tests and workflow helpers use injected PageObjects rather than constructing classes or rebuilding selectors. The [order test](tests/order.spec.ts) exercises checkout; [product-details.spec.ts](tests/product-details.spec.ts) checks the product-details/cart flow.
+
+The full migrated suite passed **37 Chromium tests with retries disabled** in the verification run. Cancellation setup and cleanup still run in `beforeEach` and `afterEach`; product data lives in `test-data/products.ts` and recorded cart data is scoped to each test's fixture.
 
 ## Checkout experiment
 
@@ -186,6 +188,7 @@ The scenario checks `Checkout: Your Information` after starting checkout and `Ch
 fixtures/
   login.ts                       # Custom loginPage fixture
   pages.ts                       # Typed fixtures for all application PageObjects
+  browserContexts.ts             # Extra contexts/tabs and their PageObject fixtures
 page-object/
   LoginPage.ts                   # Login interactions (tracked filename case)
   inventoryPage.ts               # Product selection and cart navigation
@@ -196,12 +199,13 @@ page-object/
   checkoutCompletePage.ts        # Confirmation and receipt
 test-data/
   users.ts                       # Shared credentials and typed user factory
+  products.ts                    # Product expectations and CartItem type
 tests/
   architecture.spec.ts           # Context isolation and shared page state
   login.spec.ts                  # Basic login and TypeScript utility types
   loginParameterized.spec.ts     # Table-driven login error scenarios
   order.spec.ts                  # Checkout flow using page-specific PageObjects
-  page-objects.spec.ts           # Product-details/cart behavior using PageObjects
+  product-details.spec.ts        # Product-details/cart behavior using PageObjects
   seed.spec.ts                   # Authenticated starting point for agent exploration
   place-a-single-product-order.spec.ts # Generated order checks, split into independent tests
   cancel-order/                  # CLI-generated cancellation specs and shared lifecycle hooks

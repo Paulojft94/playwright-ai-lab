@@ -1,9 +1,9 @@
-import { test, expect } from "../fixtures/login";
+import { test, expect } from "../fixtures/pages";
 import { defaultUsers } from "../test-data/users";
 
 test.describe("login parameterized tests", () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto("");
+  test.beforeEach(async ({ loginPage }) => {
+    await loginPage.goto();
   });
   [
     {
@@ -33,10 +33,10 @@ test.describe("login parameterized tests", () => {
       {
         tag: "@regression",
       },
-      async ({ page, loginPage }) => {
+      async ({ loginPage }) => {
         await loginPage.login(username, password);
 
-        await expect(page.getByTestId("error")).toHaveText(expected);
+        await expect(loginPage.error).toHaveText(expected);
       },
     );
   });
@@ -45,16 +45,16 @@ test.describe("login parameterized tests", () => {
 test.describe("login parameterized tests with iterator and factory", () => {
   for (const { username, password, expected } of Object.values(defaultUsers)) {
     test(`testing with ${username} and ${password}`, async ({
-      page,
       loginPage,
+      inventoryPage,
     }) => {
-      await page.goto("");
+      await loginPage.goto();
       await loginPage.login(username, password);
 
       if (expected) {
-        await expect(page.getByTestId("error")).toHaveText(expected);
+        await expect(loginPage.error).toHaveText(expected);
       } else {
-        await expect(page.getByText("Products")).toHaveText("Products");
+        await expect(inventoryPage.title).toHaveText("Products");
       }
     });
   }

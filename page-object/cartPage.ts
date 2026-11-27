@@ -25,6 +25,10 @@ export class CartPage {
     await this.page.goto("/cart.html");
   }
 
+  async reload() {
+    await this.page.reload();
+  }
+
   item(name: string): Locator {
     return this.items.filter({
       has: this.page.getByTestId("inventory-item-name").getByText(name, { exact: true }),

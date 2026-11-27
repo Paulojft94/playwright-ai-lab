@@ -22,6 +22,7 @@ test.describe("Product details PageObject", () => {
   }) => {
     await inventoryPage.openProduct(product);
     await expect(productDetailsPage.page).toHaveURL(/\/inventory-item\.html\?id=4$/);
+    await expect(productDetailsPage.content).toBeVisible();
     await expect(productDetailsPage.name).toHaveText(product);
     await expect(productDetailsPage.description).not.toBeEmpty();
     await expect(productDetailsPage.price).toHaveText("$29.99");

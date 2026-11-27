@@ -2,6 +2,7 @@ import type { Locator, Page } from "@playwright/test";
 
 export class ProductDetailsPage {
   readonly page: Page;
+  readonly content: Locator;
   readonly name: Locator;
   readonly description: Locator;
   readonly price: Locator;
@@ -13,11 +14,13 @@ export class ProductDetailsPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.name = page.getByTestId("inventory-item-name");
-    this.description = page.getByTestId("inventory-item-desc");
-    this.price = page.getByTestId("inventory-item-price");
-    this.addButton = page.getByRole("button", { name: "Add to cart", exact: true });
-    this.removeButton = page.getByRole("button", { name: "Remove", exact: true });
+    // The URL can update before the catalogue has been replaced by the details view.
+    this.content = page.locator(".inventory_details_container");
+    this.name = this.content.getByTestId("inventory-item-name");
+    this.description = this.content.getByTestId("inventory-item-desc");
+    this.price = this.content.getByTestId("inventory-item-price");
+    this.addButton = this.content.getByRole("button", { name: "Add to cart", exact: true });
+    this.removeButton = this.content.getByRole("button", { name: "Remove", exact: true });
     this.backToProductsButton = page.getByTestId("back-to-products");
     this.cartLink = page.getByTestId("shopping-cart-link");
     this.cartBadge = page.getByTestId("shopping-cart-badge");

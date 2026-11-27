@@ -1,27 +1,27 @@
 // spec: specs/testing/cancel-order.md (CART-CANCEL-08, order-overview)
+import { test } from "../../fixtures/pages";
+import { backpack } from "../../test-data/products";
 import {
-  test, backpack, productRow, registerCartHooks,
-  openOverview, openCart,
-  expectStage, expectCart, expectEmptyCart,
+  registerCartHooks, openOverview, openCart, expectStage, expectCart, expectEmptyCart,
 } from "./support";
 
 test.describe("Abandon checkout while preserving the cart", () => {
   registerCartHooks();
 
-  test("clear-the-cart-after-abandoning-checkout-order-overview", async ({ page, cartItems }) => {
+  test("clear-the-cart-after-abandoning-checkout-order-overview", async ({ inventoryPage, cartPage, checkoutInformationPage, checkoutOverviewPage, checkoutCompletePage, cartItems }) => {
     // 1. Abandon checkout through the order-overview route.
-    await openOverview(page);
-    await page.getByRole("button", { name: "Cancel", exact: true }).click();
-    await expectStage(page, "/inventory.html", "Products");
-    await openCart(page);
-    await expectCart(page, cartItems);
+    await openOverview(cartPage, checkoutInformationPage, checkoutOverviewPage);
+    await checkoutOverviewPage.cancel();
+    await expectStage(inventoryPage, "/inventory.html", "Products");
+    await openCart(inventoryPage, cartPage);
+    await expectCart(cartPage, cartItems, checkoutCompletePage);
 
     // 2. Click Remove within the Backpack row.
-    await productRow(page, backpack.name).getByRole("button", { name: "Remove", exact: true }).click();
-    await expectEmptyCart(page);
+    await cartPage.removeItem(backpack.name);
+    await expectEmptyCart(cartPage, checkoutCompletePage);
 
     // 3. Reload the cart.
-    await page.reload();
-    await expectEmptyCart(page);
+    await cartPage.reload();
+    await expectEmptyCart(cartPage, checkoutCompletePage);
   });
 });

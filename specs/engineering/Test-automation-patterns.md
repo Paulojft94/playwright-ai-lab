@@ -53,7 +53,7 @@ Follow [Playwright's Page Object Model documentation](https://playwright.dev/doc
 ### Save location and registration
 
 - Save fixture definitions in the project's root **`fixtures/` directory**, alongside `fixtures/login.ts` and `fixtures/pages.ts`. Do not define PageObject fixtures inside `tests/`, `page-object/`, or a spec file.
-- Use **`fixtures/pages.ts` as the shared test import and registration/composition entry point** for application PageObjects. It extends the existing login fixture from `fixtures/login.ts` and re-exports `expect`.
+- Use **`fixtures/pages.ts` as the shared test import and registration/composition entry point** for application PageObjects. It composes the existing login fixture from `fixtures/login.ts` through `fixtures/browserContexts.ts` and re-exports `expect`.
 - Register a fixture when adding a PageObject; creating the class alone is incomplete. Reuse an existing fixture instead of registering or constructing another instance of the same page in a spec.
 - Each page needs a distinct fixture, not necessarily a separate fixture file. If fixture definitions need splitting, keep their `.ts` files under `fixtures/` and compose them through `fixtures/pages.ts` so tests retain one import entry point.
 
@@ -74,6 +74,8 @@ Follow [Playwright's Page Object Model documentation](https://playwright.dev/doc
 - Keep construction separate from scenario setup. A page fixture provides a PageObject; `beforeEach` calls its methods to log in, navigate, or create the scenario's cart data. `afterEach` uses injected fixtures to clean up that data.
 - Pass injected PageObjects into workflow helpers instead of passing raw `page` and constructing classes inside those helpers.
 - When a scenario needs an additional page or browser context, define a dedicated typed fixture under `fixtures/` to provide that context's PageObjects and dispose any context it creates. Tests may still use browser/context APIs for their browser-behavior assertions.
+
+`fixtures/browserContexts.ts` supplies the architecture suite's `isolatedLoginPage`, `isolatedInventoryPage`, and `sharedInventoryPage` fixtures, exposed through `fixtures/pages.ts`. Its isolated context inherits the configured `baseURL`; its extra context and shared-context tab are disposed in fixture teardown. `cartItems` in `fixtures/pages.ts` supplies a fresh recorded-product list per test. Neither browser/PageObject fixtures nor test-data fixture definitions belong under `tests/`.
 
 For example, the inventory fixture is defined in `fixtures/pages.ts` like this (alongside the other page registrations):
 
@@ -139,7 +141,7 @@ Before considering a new/refactored test complete, check that page classes live 
 Run the affected Chromium specs with retries disabled, for example:
 
 ```bash
-npx playwright test tests/order.spec.ts tests/page-objects.spec.ts --project=chromium --retries=0
+npx playwright test tests/order.spec.ts tests/product-details.spec.ts --project=chromium --retries=0
 ```
 
 Also run affected existing consumers when changing a shared PageObject or fixture. Record what passed and any unresolved failure. Keep the README, route map, and agent instructions consistent with this context file.

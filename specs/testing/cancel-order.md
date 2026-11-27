@@ -186,7 +186,7 @@ The subsequent CLI-based generation task implemented the plan in `tests/cancel-o
 | CART-CANCEL-07 | `cancel-checkout-from-order-overview-single-item.spec.ts`, `cancel-checkout-from-order-overview-two-items.spec.ts` |
 | CART-CANCEL-08 | `clear-the-cart-after-abandoning-checkout-customer-information.spec.ts`, `clear-the-cart-after-abandoning-checkout-order-overview.spec.ts` |
 
-Each spec registers the shared hooks in `support.ts`. `beforeEach` logs in with a fresh browser context, records the selected products' displayed names/prices, adds them, and verifies the populated cart before the test. `afterEach` returns to the cart, removes remaining items through the UI, and verifies the empty cart; Playwright's context teardown disposes authentication and browser storage. The recorded item list is scoped to each test, so parallel runs do not share cart data.
+Each spec imports the shared `test` and `expect` from `fixtures/pages.ts` and registers the hooks in `support.ts`. The hooks and workflow helpers receive PageObjects through fixtures. `beforeEach` logs in with a fresh browser context, records the selected products' displayed names/prices, adds them, and verifies the populated cart before the test. `afterEach` uses `CartPage` to return to the cart, remove remaining items through the UI, and verify the empty cart; Playwright's context teardown disposes authentication and browser storage. Product expectations live in `test-data/products.ts`; the recorded item list is scoped to each test through the `cartItems` fixture, so parallel runs do not share cart data.
 
 Run this coverage with:
 
