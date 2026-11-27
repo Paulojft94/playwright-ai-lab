@@ -39,8 +39,6 @@ test.describe("playing with playwright architecture", () => {
 
       await expect(page.getByText("Products")).toHaveText("Products");
 
-      console.log(await secondPage.context().cookies());
-
       await page.context().addCookies([
         {
           name: "name",
@@ -49,7 +47,6 @@ test.describe("playing with playwright architecture", () => {
           path: "/",
         },
       ]);
-      console.log(await secondPage.context().cookies());
     } finally {
       await secondPage?.close();
     }
@@ -85,14 +82,6 @@ test.describe("playing with playwright architecture", () => {
     ]);
 
     try {
-      console.log(
-        "Cookies do primeiro contexto:",
-        await page.context().cookies(),
-      );
-      console.log(
-        "Cookies do segundo contexto:",
-        await secondPageContext.context().cookies(),
-      );
     } finally {
       await secondContext.close();
     }
