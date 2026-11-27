@@ -1,49 +1,65 @@
-import { test, expect } from "../fixtures/login";
+import { test, expect } from "../fixtures/pages";
 import { usersData } from "../test-data/users";
-import { InventoryPage } from "../page-object/inventoryPage";
-import { CartPage } from "../page-object/cartPage.spec";
 
 test.describe("place an order", () => {
-  let inventoryPage: InventoryPage;
-  let cartPage: CartPage;
+  test.beforeEach(async ({ loginPage }) => {
+    await loginPage.goto();
+  });
 
-  test.beforeEach(async ({ page }) => {
-    await page.goto("");
-    inventoryPage = new InventoryPage(page);
-    cartPage = new CartPage(page);
+  test.afterEach(async ({ cartPage }) => {
+    await cartPage.goto();
+    await cartPage.clear();
+    await expect(cartPage.items).toHaveCount(0);
+    await expect(cartPage.cartBadge).toHaveCount(0);
   });
 
   test("place an order with valid credentials", async ({
-    page,
     loginPage,
+    inventoryPage,
+    cartPage,
+    checkoutInformationPage,
+    checkoutOverviewPage,
+    checkoutCompletePage,
   }) => {
     await loginPage.login(usersData.username, usersData.password);
 
-    await expect(page.getByText("Products")).toHaveText("Products");
+    await expect(inventoryPage.title).toHaveText("Products");
 
     await inventoryPage.addItemToCart("Sauce Labs Backpack");
     await inventoryPage.goToCart();
 
-    await expect(page.getByText("Your Cart")).toHaveText("Your Cart");
+    await expect(cartPage.title).toHaveText("Your Cart");
 
     await cartPage.goToCheckout();
 
-    await expect(page.getByTestId("title")).toHaveText(
+    await expect(checkoutInformationPage.title).toHaveText(
       "Checkout: Your Information",
     );
 
-    await cartPage.fillUserInformation("John", "Doe", "12345");
+    await checkoutInformationPage.fillUserInformation("John", "Doe", "12345");
 
-    await cartPage.clickContinue();
+    await checkoutInformationPage.clickContinue();
 
-    await expect(page.getByTestId("title")).toHaveText(
+    await expect(checkoutOverviewPage.title).toHaveText(
       "Checkout: Overview",
     );
 
-    await cartPage.completeCheckout();
+    await expect(checkoutOverviewPage.paymentInformation).toHaveText("SauceCard #31337");
+    await expect(checkoutOverviewPage.shippingInformation).toHaveText("Free Pony Express Delivery!");
+    await expect(checkoutOverviewPage.subtotal).toHaveText("Item total: $29.99");
+    await expect(checkoutOverviewPage.tax).toHaveText("Tax: $2.40");
+    await expect(checkoutOverviewPage.total).toHaveText("Total: $32.39");
+    await checkoutOverviewPage.completeCheckout();
 
-    await expect(page.getByTestId("complete-header")).toHaveText(
+    await expect(checkoutCompletePage.title).toHaveText("Checkout: Complete!");
+    await expect(checkoutCompletePage.header).toHaveText(
       "Thank you for your order!",
     );
+    await expect(checkoutCompletePage.dispatchMessage).toHaveText(
+      "Your order has been dispatched, and will arrive just as fast as the pony can get there!",
+    );
+    await expect(checkoutCompletePage.backHomeButton).toBeVisible();
+    await expect(checkoutCompletePage.generatePdfButton).toBeVisible();
+    await expect(checkoutCompletePage.cartBadge).toHaveCount(0);
   });
 });
