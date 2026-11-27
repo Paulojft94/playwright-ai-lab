@@ -41,10 +41,62 @@ Follow [Playwright's Page Object Model documentation](https://playwright.dev/doc
 - Put scenario intent, test data, and expected business outcomes in specs. Assert through PageObject locators, for example `await expect(checkoutInformationPage.title).toHaveText("Checkout: Your Information")`.
 - Tests may use Playwright's browser/context APIs to establish isolation and inspect browser behavior. URL assertions on a PageObject's `page` are also valid. UI navigation and interactions still go through the relevant PageObject.
 - Helpers and hooks follow the same rule: moving raw page chains into a support function does not make them PageObjects.
-- Use `fixtures/pages.ts` for test-scoped page instances bound to the test's `page`. `fixtures/login.ts` remains the reusable login fixture used by existing tests.
+- Every PageObject must have a corresponding typed, test-scoped fixture saved under the root `fixtures/` directory. All tests and hooks must request those fixtures rather than construct PageObjects themselves; follow the fixture conventions below.
 - Use `beforeEach` for scenario setup and `afterEach` for cleanup when the suite requires test data. Cart cancellation setup must add and verify at least one product before cancellation; cleanup removes any remaining items through `CartPage`.
 - Each test gets its own context and required starting state. Do not share mutable PageObjects, a page, or cart data across tests. Hooks must support parallel execution and cleanup after a failure.
 - Assert observable outcomes explicitly. Do not hide business expectations inside a generic method that makes the scenario unreadable, remove assertions to obtain a pass, or silently skip failures.
+
+## PageObject fixtures: required for every page
+
+**Create a fixture for each PageObject. All tests must consume PageObjects through fixtures instead of constructing their own instances.** This includes setup/cleanup hooks and workflow helpers: do not hide `new SomePage(page)` inside a test helper as a workaround.
+
+### Save location and registration
+
+- Save fixture definitions in the project's root **`fixtures/` directory**, alongside `fixtures/login.ts` and `fixtures/pages.ts`. Do not define PageObject fixtures inside `tests/`, `page-object/`, or a spec file.
+- Use **`fixtures/pages.ts` as the shared test import and registration/composition entry point** for application PageObjects. It extends the existing login fixture from `fixtures/login.ts` and re-exports `expect`.
+- Register a fixture when adding a PageObject; creating the class alone is incomplete. Reuse an existing fixture instead of registering or constructing another instance of the same page in a spec.
+- Each page needs a distinct fixture, not necessarily a separate fixture file. If fixture definitions need splitting, keep their `.ts` files under `fixtures/` and compose them through `fixtures/pages.ts` so tests retain one import entry point.
+
+| PageObject | Fixture name | Definition location |
+| --- | --- | --- |
+| `LoginPage` | `loginPage` | `fixtures/login.ts`, inherited by `fixtures/pages.ts` |
+| `InventoryPage` | `inventoryPage` | `fixtures/pages.ts` |
+| `ProductDetailsPage` | `productDetailsPage` | `fixtures/pages.ts` |
+| `CartPage` | `cartPage` | `fixtures/pages.ts` |
+| `CheckoutInformationPage` | `checkoutInformationPage` | `fixtures/pages.ts` |
+| `CheckoutOverviewPage` | `checkoutOverviewPage` | `fixtures/pages.ts` |
+| `CheckoutCompletePage` | `checkoutCompletePage` | `fixtures/pages.ts` |
+
+### Fixture implementation and lifetime
+
+- Use a descriptive lower-camel-case fixture name matching its PageObject, and declare the PageObject's TypeScript type in the fixture type map.
+- Construct PageObjects **only in their fixture definitions**, using the test-scoped Playwright `page`, then provide the instance through `await use(...)`. Do not use worker-scoped or global PageObjects, singleton instances, or shared mutable pages.
+- Keep construction separate from scenario setup. A page fixture provides a PageObject; `beforeEach` calls its methods to log in, navigate, or create the scenario's cart data. `afterEach` uses injected fixtures to clean up that data.
+- Pass injected PageObjects into workflow helpers instead of passing raw `page` and constructing classes inside those helpers.
+- When a scenario needs an additional page or browser context, define a dedicated typed fixture under `fixtures/` to provide that context's PageObjects and dispose any context it creates. Tests may still use browser/context APIs for their browser-behavior assertions.
+
+For example, the inventory fixture is defined in `fixtures/pages.ts` like this (alongside the other page registrations):
+
+```ts
+import { test as loginTest, expect } from "./login";
+import { InventoryPage } from "../page-object/inventoryPage";
+
+type PageFixtures = { inventoryPage: InventoryPage };
+
+export const test = loginTest.extend<PageFixtures>({
+  inventoryPage: async ({ page }, use) => {
+    await use(new InventoryPage(page));
+  },
+});
+
+export { expect };
+```
+
+### Test consumption and adoption
+
+- Import `test` and `expect` from `fixtures/pages.ts`, using the correct relative path for the spec's folder. For example, `tests/order.spec.ts` uses `../fixtures/pages`; a spec in `tests/cancel-order/` uses `../../fixtures/pages`.
+- Request the PageObjects needed by each test or hook through its fixture arguments, such as `async ({ cartPage, checkoutInformationPage }) => { ... }`. Do not import PageObject classes into specs or use `new` to construct them there.
+- Apply this requirement to new tests and future refactors. Migration of existing tests is deferred until explicitly requested; updating these guidelines does not authorize a bulk test refactor.
 
 Example using the project's fixtures:
 
@@ -75,14 +127,14 @@ test("cancel checkout and preserve the selected item", async ({
 ## MCP and CLI generation/healing
 
 - Explore the live interface and keep plans in `specs/testing/`. Separate observed behavior from proposed requirements.
-- Read this context file and existing PageObjects before generating code, regardless of whether the browser is controlled through MCP or CLI.
+- Read this context file, existing PageObjects, and the registrations under `fixtures/` before generating code, regardless of whether the browser is controlled through MCP or CLI. Add any missing PageObject fixture under `fixtures/` and expose it through `fixtures/pages.ts`; generated specs must request the fixture rather than construct the class.
 - Browser exploration can use the tools' raw click/fill/snapshot commands. Generated tool output is input to implementation: put selectors/actions in the owning PageObject and write specs using that API before saving the final tests.
 - Reuse PageObjects during healing. If a selector changes, update its owning class and rerun affected consumers. If behavior differs from an agreed requirement, report the discrepancy rather than silently changing the requirement.
 - Migrate relevant legacy page interactions when refactoring a test. Existing raw tests are not examples to copy into new code; migrating untouched suites is separate work.
 
 ## Review and verification
 
-Before considering a new/refactored test complete, check that page classes live in the documented location, each file contains only one PageObject class, selectors are encapsulated, hooks/data remain isolated, and scenario expectations remain visible.
+Before considering a new/refactored test complete, check that page classes live in the documented location, each file contains only one PageObject class, every PageObject has a typed fixture under `fixtures/`, specs/hooks obtain instances through fixture arguments, and no PageObjects are constructed in specs or support helpers. Also check that selectors are encapsulated, hooks/data remain isolated, and scenario expectations remain visible.
 
 Run the affected Chromium specs with retries disabled, for example:
 
