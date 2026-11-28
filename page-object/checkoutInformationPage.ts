@@ -23,6 +23,14 @@ export class CheckoutInformationPage {
     this.cartBadge = page.getByTestId("shopping-cart-badge");
   }
 
+  async goto() {
+    await this.page.goto("/checkout-step-one.html");
+  }
+
+  async dismissError() {
+    await this.page.getByRole("button", { name: "Dismiss error", exact: true }).click();
+  }
+
   async fillUserInformation(firstName: string, lastName: string, postalCode: string) {
     await this.firstName.fill(firstName);
     await this.lastName.fill(lastName);

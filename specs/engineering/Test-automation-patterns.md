@@ -18,6 +18,9 @@ Follow [Playwright's Page Object Model documentation](https://playwright.dev/doc
 | Cart | `/cart.html` | `page-object/cartPage.ts` / `CartPage` |
 | Checkout information | `/checkout-step-one.html` | `page-object/checkoutInformationPage.ts` / `CheckoutInformationPage` |
 | Checkout overview | `/checkout-step-two.html` | `page-object/checkoutOverviewPage.ts` / `CheckoutOverviewPage` |
+| Dynamic Catalog Lazy Load | `/dynamic-catalog-lazy-load.html` | `page-object/dynamicCatalogLazyLoadPage.ts` / `DynamicCatalogLazyLoadPage` |
+| Dynamic Catalog Spinner | `/dynamic-catalog-spinner.html` | `page-object/dynamicCatalogSpinnerPage.ts` / `DynamicCatalogSpinnerPage` |
+| Dynamic Catalog Slider | `/dynamic-catalog-slider.html` | `page-object/dynamicCatalogSliderPage.ts` / `DynamicCatalogSliderPage` |
 | Checkout complete | `/checkout-complete.html` | `page-object/checkoutCompletePage.ts` / `CheckoutCompletePage` |
 
 - Keep exactly one PageObject class per file. Use PascalCase class names and `.ts` files; PageObjects are helpers, so their filenames must not end in `.spec.ts`.
@@ -65,6 +68,10 @@ Follow [Playwright's Page Object Model documentation](https://playwright.dev/doc
 | `CartPage` | `cartPage` | `fixtures/pages.ts` |
 | `CheckoutInformationPage` | `checkoutInformationPage` | `fixtures/pages.ts` |
 | `CheckoutOverviewPage` | `checkoutOverviewPage` | `fixtures/pages.ts` |
+| `DynamicCatalogLazyLoadPage` | `dynamicCatalogLazyLoadPage` | `fixtures/pages.ts` |
+| `DynamicCatalogSpinnerPage` | `dynamicCatalogSpinnerPage` | `fixtures/pages.ts` |
+| `DynamicCatalogSliderPage` | `dynamicCatalogSliderPage` | `fixtures/pages.ts` |
+| `MenuComponent` (shared component) | `menu` | `fixtures/pages.ts` |
 | `CheckoutCompletePage` | `checkoutCompletePage` | `fixtures/pages.ts` |
 
 ### Fixture implementation and lifetime

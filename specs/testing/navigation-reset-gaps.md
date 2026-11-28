@@ -17,13 +17,15 @@ No current spec asserts menu navigation or Reset App State. The observed menu co
 3. Open Menu and choose All Items; expect `/inventory.html`, Products, all six catalog cards and unchanged empty cart.
 4. Independently repeat for Spinner and Slider. Route navigation for these pages and the return from Slider were observed; the full independent matrix is an extension.
 
-### RESET-01 — Reset produces a coherent empty selection (P0, discrepancy)
+### RESET-01 — Investigate immediate state and verify cart clearing (P0 investigation)
+
+User decision during generation: keep immediate button consistency as investigation; do not enforce it as an approved acceptance requirement.
 
 1. Login; add Backpack and verify badge 1, Remove on its catalog card and a cart row.
 2. Return to Products; use Menu → Reset App State, then close the menu.
-3. Proposed acceptance: remain authenticated on Products; badge empty; every product Add to cart; cart contains no rows.
-4. Return to Products and add Backpack once; expect badge 1 and exactly one cart row, quantity 1.
-5. Record any disagreement among badge, button and cart as a failure. Exploration already contradicts step 3's immediate button expectation; obtain/reset the intended contract and fix or track the defect before claiming this passes.
+3. Expect authenticated Products and an empty badge. Capture the immediate Add/Remove state in a JSON attachment and screenshot. Annotate the badge/button discrepancy when observed; the test does not declare the unresolved consistency requirement passed.
+4. Open Cart and expect no rows. Return to Products; expect Add to cart after remount. Add Backpack once; expect exactly one cart row, quantity 1 and `$29.99`.
+5. Keep the immediate-state evidence for a product decision. No reset workaround or reload is inserted before collecting that evidence.
 
 ### RESET-02 — Reset remains coherent after navigation and reload (P1, extension)
 
@@ -41,4 +43,14 @@ Use the owning page fixture for each route and a shared menu component if helpfu
 
 Follow [project automation patterns](../engineering/Test-automation-patterns.md). Each scenario and parameter variant starts in a fresh browser context. Use `beforeEach` for login/setup and `afterEach` to remove remaining cart data through `cartPage`, then dispose the context; logged-out scenarios must authenticate for cleanup if needed. Use `standard_user` / `secret_sauce` at https://www.saucedemo.com/. Verify the starting page and cart before the scenario. Never depend on another test's state.
 
-Persisted tests must import typed PageObject fixtures from `fixtures/pages.ts`. Keep page interactions/selectors in the owning class under `page-object/`, one class per file. Add any missing typed, test-scoped fixture under `fixtures/` and expose it through `fixtures/pages.ts`. Use waiting assertions, no fixed sleeps. Retain explicit business assertions in each test. This document plans future tests; it does not claim they have run.
+Persisted tests must import typed PageObject fixtures from `fixtures/pages.ts`. Keep page interactions/selectors in the owning class under `page-object/`, one class per file. Add any missing typed, test-scoped fixture under `fixtures/` and expose it through `fixtures/pages.ts`. Use waiting assertions, no fixed sleeps. Retain explicit business assertions in each test. The original audit observations above are historical; the generated specs are mapped below.
+
+## Generated automation
+
+Implemented using the Playwright CLI skill on 28 November 2026. Each scenario has its own spec file; parameter variants remain independent tests/contexts. Shared setup and cleanup hooks use injected PageObjects.
+
+| Scenario | Spec |
+| --- | --- |
+| NAV-01 | [all-items-from-dynamic-catalog.spec.ts](../../tests/coverage-gaps/navigation/all-items-from-dynamic-catalog.spec.ts) |
+| RESET-01 | [investigate-immediate-reset.spec.ts](../../tests/coverage-gaps/navigation/investigate-immediate-reset.spec.ts) |
+| RESET-02 | [reset-survives-navigation-reload.spec.ts](../../tests/coverage-gaps/navigation/reset-survives-navigation-reload.spec.ts) |

@@ -15,6 +15,10 @@ export class LoginPage {
     this.error = page.getByTestId("error");
   }
 
+  async dismissError() {
+    await this.page.getByRole("button", { name: "Dismiss error", exact: true }).click();
+  }
+
   async goto() {
     await this.page.goto("/");
   }

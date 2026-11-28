@@ -1,3 +1,7 @@
+import { DynamicCatalogSliderPage } from "../page-object/dynamicCatalogSliderPage";
+import { DynamicCatalogSpinnerPage } from "../page-object/dynamicCatalogSpinnerPage";
+import { DynamicCatalogLazyLoadPage } from "../page-object/dynamicCatalogLazyLoadPage";
+import { MenuComponent } from "../page-object/menuComponent";
 import { test as contextTest, expect } from "./browserContexts";
 import type { CartItem } from "../test-data/products";
 import { InventoryPage } from "../page-object/inventoryPage";
@@ -8,6 +12,10 @@ import { CheckoutOverviewPage } from "../page-object/checkoutOverviewPage";
 import { CheckoutCompletePage } from "../page-object/checkoutCompletePage";
 
 export type PageFixtures = {
+  dynamicCatalogSliderPage: DynamicCatalogSliderPage;
+  dynamicCatalogSpinnerPage: DynamicCatalogSpinnerPage;
+  dynamicCatalogLazyLoadPage: DynamicCatalogLazyLoadPage;
+  menu: MenuComponent;
   inventoryPage: InventoryPage;
   productDetailsPage: ProductDetailsPage;
   cartPage: CartPage;
@@ -18,6 +26,18 @@ export type PageFixtures = {
 };
 
 export const test = contextTest.extend<PageFixtures>({
+  menu: async ({ page }, use) => {
+    await use(new MenuComponent(page));
+  },
+  dynamicCatalogLazyLoadPage: async ({ page }, use) => {
+    await use(new DynamicCatalogLazyLoadPage(page));
+  },
+  dynamicCatalogSpinnerPage: async ({ page }, use) => {
+    await use(new DynamicCatalogSpinnerPage(page));
+  },
+  dynamicCatalogSliderPage: async ({ page }, use) => {
+    await use(new DynamicCatalogSliderPage(page));
+  },
   cartItems: async ({}, use) => {
     await use([]);
   },

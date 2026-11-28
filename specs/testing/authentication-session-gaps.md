@@ -24,12 +24,12 @@ CLI exploration confirmed invalid credentials show an error; Dismiss error hides
 3. In independent variants, navigate to `/cart.html` and `/checkout-step-one.html` while logged out; expect login and an access error identifying the requested route. Neither page may expose an actionable authenticated checkout.
 4. Submit valid credentials; expect Products and usable navigation.
 
-### AUTH-03 — Characterize cart retention across same-account relogin (P2, policy review)
+### AUTH-03 — Characterize cart retention across same-account relogin (P2, approved baseline)
 
 1. Login, add Backpack, verify its cart row and logout.
 2. Login again in the same browser context as the same account.
 3. Current observed baseline: badge 1, Backpack shows Remove, and its cart row is retained. Verify all three representations agree.
-4. Obtain acceptance for retention before making it a permanent requirement. Cross-account cart isolation needs a separate policy and exploration; this probe does not establish it.
+4. The user approved same-account retention as the regression baseline during generation. Cross-account cart isolation needs a separate policy and exploration; this test does not establish it.
 
 ## PageObject handoff
 
@@ -39,4 +39,14 @@ Reuse `loginPage`, `inventoryPage`, and `cartPage`. Add error-dismiss actions/lo
 
 Follow [project automation patterns](../engineering/Test-automation-patterns.md). Each scenario and parameter variant starts in a fresh browser context. Use `beforeEach` for login/setup and `afterEach` to remove remaining cart data through `cartPage`, then dispose the context; logged-out scenarios must authenticate for cleanup if needed. Use `standard_user` / `secret_sauce` at https://www.saucedemo.com/. Verify the starting page and cart before the scenario. Never depend on another test's state.
 
-Persisted tests must import typed PageObject fixtures from `fixtures/pages.ts`. Keep page interactions/selectors in the owning class under `page-object/`, one class per file. Add any missing typed, test-scoped fixture under `fixtures/` and expose it through `fixtures/pages.ts`. Use waiting assertions, no fixed sleeps. Retain explicit business assertions in each test. This document plans future tests; it does not claim they have run.
+Persisted tests must import typed PageObject fixtures from `fixtures/pages.ts`. Keep page interactions/selectors in the owning class under `page-object/`, one class per file. Add any missing typed, test-scoped fixture under `fixtures/` and expose it through `fixtures/pages.ts`. Use waiting assertions, no fixed sleeps. Retain explicit business assertions in each test. The original audit observations above are historical; the generated specs are mapped below.
+
+## Generated automation
+
+Implemented using the Playwright CLI skill on 28 November 2026. Each scenario has its own spec file; parameter variants remain independent tests/contexts. Shared setup and cleanup hooks use injected PageObjects.
+
+| Scenario | Spec |
+| --- | --- |
+| AUTH-01 | [dismiss-and-recover.spec.ts](../../tests/coverage-gaps/authentication/dismiss-and-recover.spec.ts) |
+| AUTH-02 | [logout-protects-routes.spec.ts](../../tests/coverage-gaps/authentication/logout-protects-routes.spec.ts) |
+| AUTH-03 | [retain-cart-on-relogin.spec.ts](../../tests/coverage-gaps/authentication/retain-cart-on-relogin.spec.ts) |

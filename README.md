@@ -331,3 +331,17 @@ test("landing page has title", {
 ```
 
 Use tags for `--grep` filtering; custom annotations supply report context.
+
+## Coverage-gap tests
+
+The [coverage audit and functional-area plans](specs/testing/coverage-gap-audit.md) map 22 scenarios to 35 tests under `tests/coverage-gaps/`. Tests use PageObject fixtures, independent contexts and setup/cleanup hooks. Install dependencies with `npm ci`; receipt tests use `pdf-parse` to verify the downloaded PDF contents and attach the files to the test results.
+
+```bash
+# Run the newly generated scenarios without retries
+npx playwright test tests/coverage-gaps --project=chromium --retries=0
+
+# Run the complete suite
+npx playwright test --project=chromium --retries=0
+```
+
+Immediate Reset App State button consistency remains an investigation: its test attaches JSON/screenshot evidence while checking cart clearing and re-addition. Same-account cart retention across logout/login is an approved regression expectation. Dynamic Catalog timing checks use Playwright's clock, without fixed sleeps.

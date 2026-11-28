@@ -26,6 +26,8 @@ export class ProductDetailsPage {
     this.cartBadge = page.getByTestId("shopping-cart-badge");
   }
 
+  get image(): Locator { return this.content.getByRole("img"); }
+
   async goto(productId: number) {
     await this.page.goto(`/inventory-item.html?id=${productId}`);
   }

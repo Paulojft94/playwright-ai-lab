@@ -54,4 +54,14 @@ Prioritize logout guards, required-field recovery, two-item completion and the r
 
 This exploration used standard_user in desktop Chrome. It does not establish behavior for other demo personas, other engines/devices, cross-account cart privacy, lazy-list exhaustion, loading-network failures, slider timing, PDF visual/accessibility quality, external link destinations after navigation, real payments or backend persistence. Existing ORD-14/15/16 remain separate policy/exploration backlog for empty-cart checkout, whitespace and malformed postal values. No claim of exhaustive website coverage is made.
 
-Only Markdown plans were added. Future generated tests must use the PageObject fixtures and independent setup/cleanup described in each plan; no specs, fixtures or PageObjects were modified by this audit.
+At the original audit stage, only Markdown plans were added. Future generated tests must use the PageObject fixtures and independent setup/cleanup described in each plan; no specs, fixtures or PageObjects were modified by this audit.
+
+## Automation follow-up — 28 November 2026
+
+The seven plans now map all 22 scenario IDs to specs under `tests/coverage-gaps/`. Parameterization produces 35 new Chromium tests. New PageObjects and typed fixtures cover Dynamic Catalog pages and the shared menu; the engineering route map has been updated. Every new spec uses the root PageObject fixtures and beforeEach/afterEach setup/cleanup. Receipt assertions use a PDF text parser and preserve downloads as per-test report artifacts.
+
+User decisions: same-account cart retention is an approved regression baseline; immediate reset button consistency stays an investigation. RESET-01 attaches the observed button state and screenshot, annotates a mismatch, and verifies cart clearing/re-addition without claiming that the unresolved immediate consistency requirement passes. No scenario is skipped or marked as an expected failure.
+
+Generation refined Dynamic Catalog expectations using live CLI interaction and source inspection: lazy initial count depends on viewport intersection, slider cards have no description field, rotation is 2000ms, and the spinner delay is bounded below 3000ms. Direct route navigation in controlled-time tests avoids freezing menu animation timers. Menu navigation remains tested independently.
+
+Validation: `npx playwright test --project=chromium --retries=0 --workers=4` completed with **72 passed in 32.5 seconds**: 35 new tests plus all 37 pre-existing tests. No tests were skipped, retried, or marked as expected failures. The initial generation failures were healed by scoping clock control after login and using direct page navigation for timed checks, and by replacing the obsolete PDF parser with Node-20-compatible `pdf-parse` 2.4.5. Static checks confirmed all 22 planned IDs have spec mappings, local links resolve, each PageObject file has one class, and new specs contain no PageObject construction, fixed sleeps or `networkidle` waits.

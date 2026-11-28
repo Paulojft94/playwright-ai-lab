@@ -17,6 +17,28 @@ export class InventoryPage {
     this.sortSelect = page.getByRole("combobox", { name: "Sort products" });
   }
 
+  get productNames(): Locator { return this.items.getByTestId("inventory-item-name"); }
+  get productPrices(): Locator { return this.items.getByTestId("inventory-item-price"); }
+
+  itemDescription(name: string): Locator {
+    return this.item(name).getByTestId("inventory-item-desc");
+  }
+
+  itemImage(name: string): Locator {
+    return this.item(name).getByRole("img", { name, exact: true });
+  }
+
+  async openProductImage(name: string) {
+    await this.itemImage(name).click();
+  }
+
+  async catalog() {
+    return this.items.evaluateAll(items => items.map(item => ({
+      name: item.querySelector('[data-test="inventory-item-name"]')!.textContent!,
+      price: item.querySelector('[data-test="inventory-item-price"]')!.textContent!,
+    })));
+  }
+
   async goto() {
     await this.page.goto("/inventory.html");
   }

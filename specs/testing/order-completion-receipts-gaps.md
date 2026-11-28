@@ -42,4 +42,14 @@ Reuse all existing shopping PageObject fixtures. Exercise `checkoutCompletePage.
 
 Follow [project automation patterns](../engineering/Test-automation-patterns.md). Each scenario and parameter variant starts in a fresh browser context. Use `beforeEach` for login/setup and `afterEach` to remove remaining cart data through `cartPage`, then dispose the context; logged-out scenarios must authenticate for cleanup if needed. Use `standard_user` / `secret_sauce` at https://www.saucedemo.com/. Verify the starting page and cart before the scenario. Never depend on another test's state.
 
-Persisted tests must import typed PageObject fixtures from `fixtures/pages.ts`. Keep page interactions/selectors in the owning class under `page-object/`, one class per file. Add any missing typed, test-scoped fixture under `fixtures/` and expose it through `fixtures/pages.ts`. Use waiting assertions, no fixed sleeps. Retain explicit business assertions in each test. This document plans future tests; it does not claim they have run.
+Persisted tests must import typed PageObject fixtures from `fixtures/pages.ts`. Keep page interactions/selectors in the owning class under `page-object/`, one class per file. Add any missing typed, test-scoped fixture under `fixtures/` and expose it through `fixtures/pages.ts`. Use waiting assertions, no fixed sleeps. Retain explicit business assertions in each test. The original audit observations above are historical; the generated specs are mapped below.
+
+## Generated automation
+
+Implemented using the Playwright CLI skill on 28 November 2026. Each scenario has its own spec file; parameter variants remain independent tests/contexts. Shared setup and cleanup hooks use injected PageObjects.
+
+| Scenario | Spec |
+| --- | --- |
+| COMPLETE-01 | [complete-two-product-order.spec.ts](../../tests/coverage-gaps/completion/complete-two-product-order.spec.ts) |
+| PDF-01 | [download-matching-receipt.spec.ts](../../tests/coverage-gaps/completion/download-matching-receipt.spec.ts) |
+| COMPLETE-02 | [back-home-and-new-order.spec.ts](../../tests/coverage-gaps/completion/back-home-and-new-order.spec.ts) |
