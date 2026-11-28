@@ -225,11 +225,13 @@ playwright.config.ts
 
 `playwright.config.ts` currently enables Chromium with the Desktop Chrome device settings, uses `https://www.saucedemo.com/` as the `baseURL`, and maps test IDs to the `data-test` attribute. Test discovery is limited to `tests/`; PageObjects live under `page-object/` and use `.ts` filenames without the `.spec.ts` test suffix.
 
-Tests run in parallel with the list reporter. In CI, the configuration forbids `test.only`, uses one worker, and retries failures twice. Traces are collected on the first retry; local runs have no retries by default. Use `--reporter=html` when an HTML report is needed.
+Tests run in parallel with list and HTML reporters. The HTML report is saved to `playwright-report/` without opening a browser automatically. In CI, the configuration forbids `test.only`, uses eight workers, and retries failures twice. Traces are collected on the first retry; local runs have no retries by default. `npm test` runs the complete suite; use `npm run test:seed` to run only the seed.
 
 ## GitHub Actions
 
-`playwright-tests.yaml` runs the tests on pushes and pull requests targeting `master`.
+[Run Playwright Tests](.github/workflows/run-playwright-tests.yaml) follows [the pipeline context](specs/engineering/pipelines.md): it runs `npm test` when a PR is opened, updated or reopened, on pushes to `main`, and manually from the Actions page. It caches npm packages and Playwright browsers, installs Chromium and its system dependencies, and uploads HTML reports and test results as separate artifacts with 30-day retention, including after test failures.
+
+The existing `playwright-tests.yaml` also runs on pushes and pull requests targeting `main` or `master`, so matching events will run both workflows.
 
 To run Chromium tests on demand, add a new comment containing exactly `/test` to an open pull request's conversation. `playwright-pr-comment.yaml` resolves and checks out that PR's current head commit, including changes from forks. Repository owners, organization members, and collaborators can trigger this workflow. Tests run in a separate job with a read-only token and checkout does not persist credentials. Separate jobs publish the commit status and a short result comment without checking out or running PR code.
 

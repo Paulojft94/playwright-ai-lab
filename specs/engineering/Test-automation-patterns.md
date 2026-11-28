@@ -2,6 +2,12 @@
 
 This is the context file for test automation across this project. Read it before planning, generating, implementing, refactoring, reviewing, or healing Playwright tests. It applies to hand-written tests, MCP agents, and CLI/skill workflows. The repository's engineering instructions link here; maintain the detailed patterns in this file.
 
+## Pipeline context
+
+Read and follow [pipelines.md](pipelines.md) before planning, creating, modifying, or reviewing this project's test pipelines and GitHub Actions workflows. It is the project-wide context file for pipeline requirements, including execution commands, triggers, caching, reports, and artifacts. This applies to manual edits, MCP agents, and CLI/skill workflows.
+
+When test automation changes affect pipeline execution, check the package scripts and Playwright configuration against that context. Maintain pipeline requirements in `pipelines.md` and reference them here rather than duplicating them in individual test plans.
+
 ## Core principle: use PageObjects
 
 **New and refactored Playwright tests must use PageObjects instead of long, raw page call chains.** PageObject classes belong under `page-object/`, with one PageObject class per file and a separate class for each application page.
